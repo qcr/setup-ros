@@ -105,8 +105,7 @@ async function determineDistribCodename(): Promise<string> {
  * @returns Promise<number> exit code
  */
 export async function installAptDependencies(installConnext = false): Promise<number> {
-	let aptPackages: string[] = installConnext ?
-                aptDependencies.concat(CONNEXT_APT_PACKAGE_NAME) : aptDependencies;
+	let aptPackages: string[] = aptDependencies;
 	const distribCodename = await determineDistribCodename();
 	const additionalAptPackages =
 		distributionSpecificAptDependencies[distribCodename] || [];

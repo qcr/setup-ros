@@ -1373,8 +1373,7 @@ function determineDistribCodename() {
  */
 function installAptDependencies(installConnext = false) {
     return __awaiter(this, void 0, void 0, function* () {
-        let aptPackages = installConnext ?
-            aptDependencies.concat(CONNEXT_APT_PACKAGE_NAME) : aptDependencies;
+        let aptPackages = aptDependencies;
         const distribCodename = yield determineDistribCodename();
         const additionalAptPackages = distributionSpecificAptDependencies[distribCodename] || [];
         aptPackages = aptPackages.concat(additionalAptPackages);
@@ -1917,28 +1916,6 @@ exports.installPython3Dependencies = exports.runPython3PipInstall = void 0;
 const utils = __importStar(__webpack_require__(163));
 const pip3Packages = [
     "argcomplete",
-    "colcon-bash==0.4.2",
-    "colcon-cd==0.1.1",
-    "colcon-cmake==0.2.19",
-    "colcon-common-extensions==0.2.1",
-    "colcon-core==0.5.6",
-    "colcon-coveragepy-result==0.0.8",
-    "colcon-defaults==0.2.4",
-    "colcon-lcov-result==0.5.0",
-    "colcon-library-path==0.2.1",
-    "colcon-metadata==0.2.4",
-    "colcon-mixin==0.1.6",
-    "colcon-notification==0.2.12",
-    "colcon-output==0.2.8",
-    "colcon-package-information==0.3.2",
-    "colcon-package-selection==0.2.5",
-    "colcon-parallel-executor==0.2.4",
-    "colcon-pkg-config==0.1.0",
-    "colcon-powershell==0.3.6",
-    "colcon-python-setup-py==0.2.5",
-    "colcon-recursive-crawl==0.2.1",
-    "colcon-ros==0.3.17",
-    "colcon-test-result==0.3.8",
     "coverage",
     "cryptography",
     "empy",

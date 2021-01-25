@@ -1230,7 +1230,7 @@ function runLinux() {
         yield utils.exec("sudo", ["bash", "-c", "rm /etc/ros/rosdep/sources.list.d/20-default.list || true"]);
         yield utils.exec("sudo", ["rosdep", "init"]);
         for (let rosDistro of utils.getRequiredRosDistributions()) {
-            yield apt.runAptGetInstall([`ros-${rosDistro}-core`]);
+            yield apt.runAptGetInstall([`ros-${rosDistro}-ros-base`]);
         }
     });
 }
@@ -1309,19 +1309,19 @@ const distributionSpecificAptDependencies = {
     bionic: [
         // OpenSplice
         "libopensplice69",
-        // python3-rosdep is conflicting with ros-melodic-core-full,
+        // python3-rosdep is conflicting with ros-melodic-ros-base,
         // and should not be used here. See ros-tooling/setup-ros#74
         "python-rosdep",
     ],
     focal: [
         // python-rosdep does not exist on Focal, so python3-rosdep is used.
-        // The issue with ros-melodic-core-full is also non-applicable.
+        // The issue with ros-melodic-ros-base is also non-applicable.
         "python3-rosdep",
     ],
     xenial: [
         // OpenSplice
         "libopensplice69",
-        // python3-rosdep is conflicting with ros-melodic-core-full,
+        // python3-rosdep is conflicting with ros-melodic-ros-base,
         // and should not be used here. See ros-tooling/setup-ros#74
         "python-rosdep",
     ],

@@ -27,8 +27,8 @@ const aptDependencies: string[] = [
 	"python", // required for sourcing setup.sh
 	"python3-catkin-pkg-modules",
 	"python3-pip",
-    "python3-vcstool",
-    "python-rospkg",
+        "python3-vcstool",
+        "python3-rospkg",
 	"wget",
 	// FastRTPS dependencies
 	"libasio-dev",

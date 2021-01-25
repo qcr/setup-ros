@@ -49,6 +49,39 @@ AHNx8kw4MPUkxExgI7Sd
 -----END PGP PUBLIC KEY BLOCK-----
 `;
 
+const qcrAptPublicGpgKey = `
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mQENBF1KtqsBCADZlJ0KocN9/IWVnGUrrVqLWc+QxttSenv8CWyRlteureY54DyS
+GUmAGECIt3VC5k+ud+2v2c0JhFH2eR/K4vnUCscH3MVUvwK2/Y0mC6FJtaOzFf3L
+BxPTnYriY5A7oqnfHJEtVVuZUAyli6VdxT9Q77303cYIKYBSu57Qqz1TXkKvMBdr
+0WGthOLx5mZoRpXZc7zLW/to1ae5OKZWwrKkeT7d2RR7MOiY5HTaKd8jQtAcn22j
+NZj8eVe/8E4X1pNAE0XkwGMHmNUVABI9a//zXLb9d2B/cJV5Up/ZR+K3XWIMRyGu
+jZys30grFgnDg/1W7QZ+N8Mw53XFBbuKRUnBABEBAAG0OkdhdmluIFN1ZGRyZXkg
+KHJvYm90aWNzLnF1dC5lZHUuYXUpIDxnLnN1ZGRyZXlAcXV0LmVkdS5hdT6JATgE
+EwECACIFAl1KtqsCGwMGCwkIBwMCBhUIAgkKCwQWAgMBAh4BAheAAAoJEIrWt0xb
+dsmw0aIH+gKrSlJRbXKlPtwJPyoyxMSR5QO7osQMX9HeuVagZeR8pfMICZLdz4B1
+eIERsVxzHdyIVhzERX/1V3E8C0IrieDMXzw94OmEUHH4oaLUvOBsArfAqJ0vQbce
+rBwnJtHzF98WxZZMkcfU6o5ahGWvuSq222uuMR1uvk4TQnuS8wvuq8nuWGTdLXDm
+Jf0/qIWoPaYXKFOFw5B4xmAVNSS/1hAvqpceGlikvbkHOmOxaO9bzKNAvw93Ogq3
+LPkSg+IM0G4flrlORMEbsrT5j8pIqOwstH9oBxpsXpEd93BrBVa16EVVrv5GovM1
+uURkHAiAib30EfeYTGWgEWAKSNuU0om5AQ0EXUq2qwEIALYl3abKUXjsSZjyJMwE
+KfzzK4S99Bhb/Sj1YTsQNkUGFo9I7n7nSp8fF3PfCt8cIFwLYWxpyJ/G6lkuvtBB
+AI0nKz6ni4rQDwJBGmdcV42gbYeCavYINFHi9q7lvUpyF8yCErxRWnjBImnx20+V
+uQryNeOINL0L+kQZa8TWYY2FV/xj1arhhAtiunqtGYFEcKtYSQtfiSNYg753kzm3
+3mjHYv3FQO6fmuDwPYF3bf+LZcPlb8iKbNYxhcJNTqJUXzTu70RX777IPV4Rw0Gi
+a/n9+pve0BNzsMwuBNscWIT65IGIxTM3CmjPeAaW6OgVJUhe5NYvJBMvi5jWQaZ8
+q0cAEQEAAYkBHwQYAQIACQUCXUq2qwIbDAAKCRCK1rdMW3bJsJmOCACeZbiQ82nk
+pVDr2hxxJVNl3RVJqONyIwq9SFSQ/ykfRrscVqQMuxsbxsiL97tn9k5LuAXHjtQ4
+6t0AJBwAVb3WP3voVoUtE0ZShHwk2JSlkg09GGM+NwWs87q90zZkL5i5hQk2uRbT
+Fa6C2sKkcUXYdHnnaV3QJbPFKD2t8cRI3Bk6gEXaMlj1Ta+vNbtbAEjEHtMmo1VV
+x/Q4aiLnmuwCBJQeOU394hVHYXqWNXtQeyg2MnZnjyAtlir60W0nXrJUj5nobJnJ
+JE2XOzdAdJQZZ22nlTqJJ+Ww3XtbskKSEzbf4eikeORhVFySPgo96OrlHmyoC6WB
+ZC9QEuJuhkyw
+=kZHZ
+-----END PGP PUBLIC KEY BLOCK-----
+`
+
 /**
  * Install ROS 2 on a Linux worker.
  */
@@ -96,9 +129,12 @@ export async function runLinux() {
 	// OSRF APT repository is necessary, even when building
 	// from source to install colcon, vcs, etc.
 	const workspace = process.env.GITHUB_WORKSPACE as string;
-	const keyFilePath = path.join(workspace, "ros.key");
-	fs.writeFileSync(keyFilePath, openRoboticsAptPublicGpgKey);
-	await utils.exec("sudo", ["apt-key", "add", keyFilePath]);
+	
+	fs.writeFileSync(path.join(workspace, "ros.key"), openRoboticsAptPublicGpgKey);
+    await utils.exec("sudo", ["apt-key", "add", path.join(workspace, "ros.key")]);
+    
+    fs.writeFileSync(path.join(workspace, "qcr.key"), qcrAptPublicGpgKey);
+	await utils.exec("sudo", ["apt-key", "add", path.join(workspace, "qcr.key")]);
 
 	await utils.exec("sudo", [
 		"bash",
@@ -109,6 +145,12 @@ export async function runLinux() {
 		"bash",
 		"-c",
 		`echo "deb http://packages.ros.org/ros2${use_ros2_testing ? "-testing" : ""}/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros2-latest.list`,
+    ]);
+    
+    await utils.exec("sudo", [
+		"bash",
+		"-c",
+		`echo "deb https://packages.qcr.ai $(lsb_release -sc) main" > /etc/apt/sources.list.d/qcr-latest.list`,
 	]);
 
 	await utils.exec("sudo", ["apt-get", "update"]);
@@ -128,7 +170,9 @@ export async function runLinux() {
 
 	// Initializes rosdep, trying to remove the default file first in case this environment has already done a rosdep init before
 	await utils.exec("sudo", ["bash", "-c", "rm /etc/ros/rosdep/sources.list.d/20-default.list || true"]);
-	await utils.exec("sudo", ["rosdep", "init"]);
+    await utils.exec("sudo", ["rosdep", "init"]);
+    
+    await utils.exec("sudo", ["bash", "-c", 'echo "yaml https://bitbucket.org/acrv/rv_package_list/raw/HEAD/$(lsb_release -sc)/sources.yaml" >> /etc/ros/rosdep/sources.list.d/20-default.list']);
 
 	for (let rosDistro of utils.getRequiredRosDistributions()) {
 		await apt.runAptGetInstall([`ros-${rosDistro}-ros-base`]);

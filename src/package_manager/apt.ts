@@ -39,20 +39,20 @@ const distributionSpecificAptDependencies = {
 		// OpenSplice
 		"libopensplice69",
 
-		// python3-rosdep is conflicting with ros-melodic-desktop-full,
+		// python3-rosdep is conflicting with ros-melodic-core-full,
 		// and should not be used here. See ros-tooling/setup-ros#74
 		"python-rosdep",
 	],
 	focal: [
 		// python-rosdep does not exist on Focal, so python3-rosdep is used.
-		// The issue with ros-melodic-desktop-full is also non-applicable.
+		// The issue with ros-melodic-core-full is also non-applicable.
 		"python3-rosdep",
 	],
 	xenial: [
 		// OpenSplice
 		"libopensplice69",
 
-		// python3-rosdep is conflicting with ros-melodic-desktop-full,
+		// python3-rosdep is conflicting with ros-melodic-core-full,
 		// and should not be used here. See ros-tooling/setup-ros#74
 		"python-rosdep",
 	],

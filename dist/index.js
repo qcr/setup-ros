@@ -1335,7 +1335,6 @@ const aptDependencies = [
     "lcov",
     "libc++-dev",
     "libc++abi-dev",
-    "python",
     "python3-catkin-pkg-modules",
     "python3-pip",
     "python3-vcstool",

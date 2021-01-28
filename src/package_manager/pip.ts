@@ -19,6 +19,7 @@ const pip3Packages: string[] = [
 	'importlib-resources',
 	"lark-parser",
 	"mock",
+	"mypy",
 	"nose",
 	"numpy==1.18.0",
 	"pep8",
@@ -34,7 +35,7 @@ const pip3Packages: string[] = [
 	"wheel",
 ];
 
-const pip3CommandLine: string[] = ["pip", "install", "--upgrade"];
+const pip3CommandLine: string[] = ["pip3", "install", "--upgrade"];
 
 /**
  * Run Python3 pip install on a list of specified packages.

@@ -1335,6 +1335,10 @@ const aptDependencies = [
     "lcov",
     "libc++-dev",
     "libc++abi-dev",
+    "python3-catkin-pkg-modules",
+    "python3-pip",
+    "python3-vcstool",
+    "python3-rospkg",
     "wget",
     // FastRTPS dependencies
     "libasio-dev",
@@ -1347,19 +1351,11 @@ const distributionSpecificAptDependencies = {
         // python3-rosdep is conflicting with ros-melodic-ros-base,
         // and should not be used here. See ros-tooling/setup-ros#74
         "python-rosdep",
-        "python-catkin-pkg-modules",
-        "python-pip",
-        "python-vcstool",
-        "python-rospkg",
     ],
     focal: [
         // python-rosdep does not exist on Focal, so python3-rosdep is used.
         // The issue with ros-melodic-ros-base is also non-applicable.
         "python3-rosdep",
-        "python3-catkin-pkg-modules",
-        "python3-pip",
-        "python3-vcstool",
-        "python3-rospkg",
     ],
     xenial: [
         // OpenSplice
@@ -1367,10 +1363,6 @@ const distributionSpecificAptDependencies = {
         // python3-rosdep is conflicting with ros-melodic-ros-base,
         // and should not be used here. See ros-tooling/setup-ros#74
         "python-rosdep",
-        "python-catkin-pkg-modules",
-        "python-pip",
-        "python-vcstool",
-        "python-rospkg",
     ],
 };
 /**
@@ -1980,6 +1972,7 @@ const pip3Packages = [
     'importlib-resources',
     "lark-parser",
     "mock",
+    "mypy",
     "nose",
     "numpy==1.18.0",
     "pep8",
@@ -1994,7 +1987,7 @@ const pip3Packages = [
     "setuptools",
     "wheel",
 ];
-const pip3CommandLine = ["pip", "install", "--upgrade"];
+const pip3CommandLine = ["pip3", "install", "--upgrade"];
 /**
  * Run Python3 pip install on a list of specified packages.
  *

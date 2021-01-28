@@ -19,7 +19,6 @@ const pip3Packages: string[] = [
 	'importlib-resources',
 	"lark-parser",
 	"mock",
-	"mypy",
 	"nose",
 	"numpy==1.18.0",
 	"pep8",

@@ -23,11 +23,11 @@ export async function runOsX() {
 		"-c",
 		'echo "export PATH=$PATH:/usr/local/opt/qt/bin" >> ~/.bashrc',
 	]);
-	await pip.installPython3Dependencies();
+	await pip.installPython3Dependencies('');
 
 	// While rosdep and vcs are available as a Debian package on Ubuntu, they need
 	// to be installed through pip on OS X.
-	await pip.runPython3PipInstall(["catkin-pkg", "rosdep", "vcstool"]);
+	await pip.runPython3PipInstall(["catkin-pkg", "rosdep", "vcstool"], '');
 
 	// Initializes rosdep
 	await utils.exec("sudo", ["rosdep", "init"]);

@@ -21,7 +21,6 @@ const pip3Packages: string[] = [
 	"mock",
 	"mypy",
 	"nose",
-	"numpy==1.18.0",
 	"pep8",
 	"pydocstyle",
 	"pyparsing",
@@ -35,7 +34,7 @@ const pip3Packages: string[] = [
 	"wheel",
 ];
 
-const pip3CommandLine: string[] = ["pip3", "install", "--upgrade"];
+const pipCommandLine: string[] = ["pip3", "install", "--upgrade"];
 
 /**
  * Run Python3 pip install on a list of specified packages.
@@ -46,12 +45,14 @@ const pip3CommandLine: string[] = ["pip3", "install", "--upgrade"];
  */
 export async function runPython3PipInstall(
 	packages: string[],
+	distribCodename: string,
 	run_with_sudo?: boolean
 ): Promise<number> {
 	const sudo_enabled = run_with_sudo === undefined ? true : run_with_sudo;
-	const args = pip3CommandLine.concat(packages);
+	pipCommandLine[0] = distribCodename == 'bionic' || distribCodename == 'xenial' ? 'pip' : pipCommandLine[0];
+	const args = pipCommandLine.concat(packages);
 	if (sudo_enabled) {
-		return utils.exec("sudo", pip3CommandLine.concat(packages));
+		return utils.exec("sudo", pipCommandLine.concat(packages));
 	} else {
 		return utils.exec(args[0], args.splice(1));
 	}
@@ -64,7 +65,7 @@ export async function runPython3PipInstall(
  * @returns Promise<number> exit code
  */
 export async function installPython3Dependencies(
-	run_with_sudo?: boolean
+	distribCodename: string, run_with_sudo?: boolean
 ): Promise<number> {
-	return runPython3PipInstall(pip3Packages, run_with_sudo);
+	return runPython3PipInstall(pip3Packages, distribCodename, run_with_sudo);
 }

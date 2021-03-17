@@ -1,5 +1,7 @@
 import * as core from "@actions/core";
 import * as io from "@actions/io";
+import * as im from "@actions/exec/lib/interfaces";
+import * as exec from "@actions/exec";
 
 import * as apt from "./package_manager/apt";
 import * as pip from "./package_manager/pip";
@@ -83,6 +85,30 @@ ZC9QEuJuhkyw
 `
 
 /**
+ * Determines the Ubuntu distribution codename.
+ *
+ * This function directly source /etc/lsb-release instead of invoking
+ * lsb-release as the package may not be installed.
+ *
+ * @returns Promise<string> Ubuntu distribution codename (e.g. "focal")
+ */
+ async function determineDistribCodename(): Promise<string> {
+	let distribCodename = "";
+	const options: im.ExecOptions = {};
+	options.listeners = {
+		stdout: (data: Buffer) => {
+			distribCodename += data.toString();
+		},
+	};
+	await exec.exec(
+		"bash",
+		["-c", 'source /etc/lsb-release ; echo -n "$DISTRIB_CODENAME"'],
+		options
+	);
+	return distribCodename;
+}
+
+/**
  * Install ROS 2 on a Linux worker.
  */
 export async function runLinux() {
@@ -108,6 +134,9 @@ export async function runLinux() {
 
 	await utils.exec("sudo", ["bash", "-c", "echo 'Etc/UTC' > /etc/timezone"]);
 	await utils.exec("sudo", ["apt-get", "update"]);
+
+	// Get Distrution Name
+	const distribCodename = await determineDistribCodename();
 
 	// Install tools required to configure the worker system.
 	await apt.runAptGetInstall(["curl", "gnupg2", "locales", "lsb-release"]);
@@ -154,19 +183,19 @@ export async function runLinux() {
 	]);
 
 	await utils.exec("sudo", ["apt-get", "update"]);
-
+	
 	// Install rosdep and vcs, as well as FastRTPS dependencies, OpenSplice, and
       // optionally RTI Connext.
 	// vcs dependencies (e.g. git), as well as base building packages are not pulled by rosdep, so
 	// they are also installed during this stage.
-	await apt.installAptDependencies(installConnext);
+	await apt.installAptDependencies(installConnext, distribCodename);
 
 	// pip3 dependencies need to be installed after the APT ones, as pip3
 	// modules such as cryptography requires python-dev to be installed,
 	// because they rely on Python C headers.
 	// Upgrade pip to latest before installing other dependencies, the apt version is very old
-	await pip.runPython3PipInstall(['pip']);
-	await pip.installPython3Dependencies();
+	await pip.runPython3PipInstall(['pip'], distribCodename);
+	await pip.installPython3Dependencies(distribCodename);
 
 	// Initializes rosdep, trying to remove the default file first in case this environment has already done a rosdep init before
 	await utils.exec("sudo", ["bash", "-c", "rm /etc/ros/rosdep/sources.list.d/20-default.list || true"]);

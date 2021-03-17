@@ -45,9 +45,9 @@ async function prepareRos2BuildEnvironment() {
 	core.addPath("c:\\program files\\cppcheck");
 	await chocolatey.installChocoDependencies();
 	await chocolatey.downloadAndInstallRos2NugetPackages();
-	await pip.installPython3Dependencies(false);
-	await pip.runPython3PipInstall(pip3Packages, false);
-	await pip.runPython3PipInstall(["rosdep", "vcstool"], false);
+	await pip.installPython3Dependencies('', false);
+	await pip.runPython3PipInstall(pip3Packages, '', false);
+	await pip.runPython3PipInstall(["rosdep", "vcstool"], '', false);
 	return utils.exec(`rosdep`, ["init"]);
 }
 

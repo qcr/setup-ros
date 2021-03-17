@@ -1113,6 +1113,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.runLinux = void 0;
 const core = __importStar(__webpack_require__(470));
 const io = __importStar(__webpack_require__(1));
+const exec = __importStar(__webpack_require__(986));
 const apt = __importStar(__webpack_require__(77));
 const pip = __importStar(__webpack_require__(230));
 const utils = __importStar(__webpack_require__(163));
@@ -1191,6 +1192,27 @@ ZC9QEuJuhkyw
 -----END PGP PUBLIC KEY BLOCK-----
 `;
 /**
+ * Determines the Ubuntu distribution codename.
+ *
+ * This function directly source /etc/lsb-release instead of invoking
+ * lsb-release as the package may not be installed.
+ *
+ * @returns Promise<string> Ubuntu distribution codename (e.g. "focal")
+ */
+function determineDistribCodename() {
+    return __awaiter(this, void 0, void 0, function* () {
+        let distribCodename = "";
+        const options = {};
+        options.listeners = {
+            stdout: (data) => {
+                distribCodename += data.toString();
+            },
+        };
+        yield exec.exec("bash", ["-c", 'source /etc/lsb-release ; echo -n "$DISTRIB_CODENAME"'], options);
+        return distribCodename;
+    });
+}
+/**
  * Install ROS 2 on a Linux worker.
  */
 function runLinux() {
@@ -1216,6 +1238,8 @@ function runLinux() {
         var installConnext = core.getInput('install-connext') === 'true';
         yield utils.exec("sudo", ["bash", "-c", "echo 'Etc/UTC' > /etc/timezone"]);
         yield utils.exec("sudo", ["apt-get", "update"]);
+        // Get Distrution Name
+        const distribCodename = yield determineDistribCodename();
         // Install tools required to configure the worker system.
         yield apt.runAptGetInstall(["curl", "gnupg2", "locales", "lsb-release"]);
         // Select a locale supporting Unicode.
@@ -1257,13 +1281,13 @@ function runLinux() {
         // optionally RTI Connext.
         // vcs dependencies (e.g. git), as well as base building packages are not pulled by rosdep, so
         // they are also installed during this stage.
-        yield apt.installAptDependencies(installConnext);
+        yield apt.installAptDependencies(installConnext, distribCodename);
         // pip3 dependencies need to be installed after the APT ones, as pip3
         // modules such as cryptography requires python-dev to be installed,
         // because they rely on Python C headers.
         // Upgrade pip to latest before installing other dependencies, the apt version is very old
-        yield pip.runPython3PipInstall(['pip']);
-        yield pip.installPython3Dependencies();
+        yield pip.runPython3PipInstall(['pip'], distribCodename);
+        yield pip.installPython3Dependencies(distribCodename);
         // Initializes rosdep, trying to remove the default file first in case this environment has already done a rosdep init before
         yield utils.exec("sudo", ["bash", "-c", "rm /etc/ros/rosdep/sources.list.d/20-default.list || true"]);
         yield utils.exec("sudo", ["rosdep", "init"]);
@@ -1313,7 +1337,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.installAptDependencies = exports.runAptGetInstall = void 0;
-const exec = __importStar(__webpack_require__(986));
 const utils = __importStar(__webpack_require__(163));
 const CONNEXT_APT_PACKAGE_NAME = "rti-connext-dds-5.3.1"; // RTI Connext
 const aptCommandLine = [
@@ -1339,6 +1362,8 @@ const aptDependencies = [
     "python3-pip",
     "python3-vcstool",
     "python3-rospkg",
+    "python3-rosdep",
+    "python3-numpy",
     "wget",
     // FastRTPS dependencies
     "libasio-dev",
@@ -1348,21 +1373,10 @@ const distributionSpecificAptDependencies = {
     bionic: [
         // OpenSplice
         "libopensplice69",
-        // python3-rosdep is conflicting with ros-melodic-ros-base,
-        // and should not be used here. See ros-tooling/setup-ros#74
-        "python-rosdep",
-    ],
-    focal: [
-        // python-rosdep does not exist on Focal, so python3-rosdep is used.
-        // The issue with ros-melodic-ros-base is also non-applicable.
-        "python3-rosdep",
     ],
     xenial: [
         // OpenSplice
         "libopensplice69",
-        // python3-rosdep is conflicting with ros-melodic-ros-base,
-        // and should not be used here. See ros-tooling/setup-ros#74
-        "python-rosdep",
     ],
 };
 /**
@@ -1385,37 +1399,18 @@ function runAptGetInstall(packages) {
 }
 exports.runAptGetInstall = runAptGetInstall;
 /**
- * Determines the Ubuntu distribution codename.
- *
- * This function directly source /etc/lsb-release instead of invoking
- * lsb-release as the package may not be installed.
- *
- * @returns Promise<string> Ubuntu distribution codename (e.g. "focal")
- */
-function determineDistribCodename() {
-    return __awaiter(this, void 0, void 0, function* () {
-        let distribCodename = "";
-        const options = {};
-        options.listeners = {
-            stdout: (data) => {
-                distribCodename += data.toString();
-            },
-        };
-        yield exec.exec("bash", ["-c", 'source /etc/lsb-release ; echo -n "$DISTRIB_CODENAME"'], options);
-        return distribCodename;
-    });
-}
-/**
  * Run ROS 2 APT dependencies.
  *
  * @returns Promise<number> exit code
  */
-function installAptDependencies(installConnext = false) {
+function installAptDependencies(installConnext = false, distribCodename) {
     return __awaiter(this, void 0, void 0, function* () {
         let aptPackages = aptDependencies;
-        const distribCodename = yield determineDistribCodename();
         const additionalAptPackages = distributionSpecificAptDependencies[distribCodename] || [];
         aptPackages = aptPackages.concat(additionalAptPackages);
+        if (distribCodename === 'bionic' || distribCodename == 'xenial') {
+            aptPackages = aptPackages.map(pkg => pkg.replace('python3', 'python'));
+        }
         return runAptGetInstall(aptPackages);
     });
 }
@@ -1974,7 +1969,6 @@ const pip3Packages = [
     "mock",
     "mypy",
     "nose",
-    "numpy==1.18.0",
     "pep8",
     "pydocstyle",
     "pyparsing",
@@ -1987,7 +1981,7 @@ const pip3Packages = [
     "setuptools",
     "wheel",
 ];
-const pip3CommandLine = ["pip3", "install", "--upgrade"];
+const pipCommandLine = ["pip3", "install", "--upgrade"];
 /**
  * Run Python3 pip install on a list of specified packages.
  *
@@ -1995,12 +1989,13 @@ const pip3CommandLine = ["pip3", "install", "--upgrade"];
  * @param   run_with_sudo   whether to prefix the command with sudo
  * @returns Promise<number> exit code
  */
-function runPython3PipInstall(packages, run_with_sudo) {
+function runPython3PipInstall(packages, distribCodename, run_with_sudo) {
     return __awaiter(this, void 0, void 0, function* () {
         const sudo_enabled = run_with_sudo === undefined ? true : run_with_sudo;
-        const args = pip3CommandLine.concat(packages);
+        pipCommandLine[0] = distribCodename == 'bionic' || distribCodename == 'xenial' ? 'pip' : pipCommandLine[0];
+        const args = pipCommandLine.concat(packages);
         if (sudo_enabled) {
-            return utils.exec("sudo", pip3CommandLine.concat(packages));
+            return utils.exec("sudo", pipCommandLine.concat(packages));
         }
         else {
             return utils.exec(args[0], args.splice(1));
@@ -2014,9 +2009,9 @@ exports.runPython3PipInstall = runPython3PipInstall;
  * @param   run_with_sudo   whether to prefix the command with sudo
  * @returns Promise<number> exit code
  */
-function installPython3Dependencies(run_with_sudo) {
+function installPython3Dependencies(distribCodename, run_with_sudo) {
     return __awaiter(this, void 0, void 0, function* () {
-        return runPython3PipInstall(pip3Packages, run_with_sudo);
+        return runPython3PipInstall(pip3Packages, distribCodename, run_with_sudo);
     });
 }
 exports.installPython3Dependencies = installPython3Dependencies;
@@ -3805,9 +3800,9 @@ function prepareRos2BuildEnvironment() {
         core.addPath("c:\\program files\\cppcheck");
         yield chocolatey.installChocoDependencies();
         yield chocolatey.downloadAndInstallRos2NugetPackages();
-        yield pip.installPython3Dependencies(false);
-        yield pip.runPython3PipInstall(pip3Packages, false);
-        yield pip.runPython3PipInstall(["rosdep", "vcstool"], false);
+        yield pip.installPython3Dependencies('', false);
+        yield pip.runPython3PipInstall(pip3Packages, '', false);
+        yield pip.runPython3PipInstall(["rosdep", "vcstool"], '', false);
         return utils.exec(`rosdep`, ["init"]);
     });
 }
@@ -6043,10 +6038,10 @@ function runOsX() {
             "-c",
             'echo "export PATH=$PATH:/usr/local/opt/qt/bin" >> ~/.bashrc',
         ]);
-        yield pip.installPython3Dependencies();
+        yield pip.installPython3Dependencies('');
         // While rosdep and vcs are available as a Debian package on Ubuntu, they need
         // to be installed through pip on OS X.
-        yield pip.runPython3PipInstall(["catkin-pkg", "rosdep", "vcstool"]);
+        yield pip.runPython3PipInstall(["catkin-pkg", "rosdep", "vcstool"], '');
         // Initializes rosdep
         yield utils.exec("sudo", ["rosdep", "init"]);
     });

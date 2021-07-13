@@ -160,7 +160,6 @@ export async function runLinux() {
 	// from source to install colcon, vcs, etc.
 	const workspace = process.env.GITHUB_WORKSPACE as string;
 	
-	await utils.exec("")
 	fs.writeFileSync(path.join(workspace, "ros.key"), openRoboticsAptPublicGpgKey);
     await utils.exec("sudo", ["apt-key", "add", path.join(workspace, "ros.key")]);
     

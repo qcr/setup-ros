@@ -1258,7 +1258,6 @@ function runLinux() {
         // OSRF APT repository is necessary, even when building
         // from source to install colcon, vcs, etc.
         const workspace = process.env.GITHUB_WORKSPACE;
-        yield utils.exec("");
         fs_1.default.writeFileSync(path.join(workspace, "ros.key"), openRoboticsAptPublicGpgKey);
         yield utils.exec("sudo", ["apt-key", "add", path.join(workspace, "ros.key")]);
         fs_1.default.writeFileSync(path.join(workspace, "qcr.key"), qcrAptPublicGpgKey);

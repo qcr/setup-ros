@@ -1292,6 +1292,7 @@ function runLinux() {
         // Initializes rosdep, trying to remove the default file first in case this environment has already done a rosdep init before
         yield utils.exec("sudo", ["bash", "-c", "rm /etc/ros/rosdep/sources.list.d/20-default.list || true"]);
         yield utils.exec("sudo", ["rosdep", "init"]);
+        yield utils.exec("sudo", ["bash", "-c", `sed -i "1iyaml https:\/\/raw.githubusercontent.com\/qcr\/package_lists\/master\/$(lsb_release -sc)\/sources.yaml" /etc/ros/rosdep/sources.list.d/20-default.list`]);
         for (let rosDistro of utils.getRequiredRosDistributions()) {
             yield apt.runAptGetInstall([`ros-${rosDistro}-ros-base`]);
         }

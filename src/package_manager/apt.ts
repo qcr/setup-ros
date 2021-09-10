@@ -27,7 +27,6 @@ const aptDependencies: string[] = [
 	"python3-vcstool",
 	"python3-rospkg",
 	"python3-rosdep",
-	"python3-numpy",
 	"wget",
 	// FastRTPS dependencies
 	"libasio-dev",
